@@ -12,11 +12,13 @@ module Correios
       end
 
       def request(zipcode)
+        retries ||= 0
         http = build_http
-
-        response = request_with_retry { http.request(build_request(zipcode)) }
-
+        response = http.request(build_request(zipcode))
+        Correios::CEP.log_response(response)
         response.body
+      rescue EOFError
+        retry if (retries += 1) < Correios::CEP.max_retries || raise
       ensure
         http.finish if http.started?
       end
