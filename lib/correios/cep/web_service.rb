@@ -17,10 +17,10 @@ module Correios
         response = http.request(build_request(zipcode))
         Correios::CEP.log_response(response)
         response.body
-      rescue EOFError
+      rescue EOFError, Net::OpenTimeout
         retry if (retries += 1) < Correios::CEP.max_retries || raise
       ensure
-        http.finish if http.started?
+        http.finish if http && http.started?
       end
 
       private
